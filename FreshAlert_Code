@@ -1,0 +1,68 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+const int gasPin = 34;
+const int greenLed = 13;
+const int yellowLed = 12;
+const int redLed = 14;
+const int buzzer = 18;
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(greenLed, OUTPUT);
+  pinMode(yellowLed, OUTPUT);
+  pinMode(redLed, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+
+  Wire.begin(21, 22);
+  lcd.init();
+  lcd.backlight();
+
+  lcd.setCursor(0, 0);
+  lcd.print("SniffBot Project");
+  lcd.setCursor(0, 1);
+  lcd.print("By Marwan...");
+  delay(3000);
+  lcd.clear();
+}
+
+void loop() {
+  int gasValue = analogRead(gasPin);
+
+  Serial.print("Gas Sensor Value: ");
+  Serial.println(gasValue);
+
+  lcd.setCursor(0, 0);
+  lcd.print("Gas Level: ");
+  lcd.print(gasValue);
+  lcd.print("   ");
+
+  lcd.setCursor(0, 1);
+
+  if (gasValue < 1000) {
+    digitalWrite(greenLed, HIGH);
+    digitalWrite(yellowLed, LOW);
+    digitalWrite(redLed, LOW);
+    noTone(buzzer);
+    lcd.print("Status: FRESH   ");
+  }
+  else if (gasValue >= 800 && gasValue < 2200) {
+    digitalWrite(greenLed, LOW);
+    digitalWrite(yellowLed, HIGH);
+    digitalWrite(redLed, LOW);
+    noTone(buzzer);
+    lcd.print("Status: CHECK IT");
+  }
+  else {
+    digitalWrite(greenLed, LOW);
+    digitalWrite(yellowLed, LOW);
+    digitalWrite(redLed, HIGH);
+    tone(buzzer, 1000);
+    lcd.print("Status: SPOILED!");
+  }
+
+  delay(500);
+}
